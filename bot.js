@@ -1,11 +1,19 @@
 // Required node packages
 const Discord = require('discord.js');
 const ytdl = require('ytdl-core');
+const search = require('youtube-search');
 const 
 {
     prefix,
-    token
+    token,
+    youtube
 } = require('./config.json');
+const options = 
+{
+    results: 10,
+    key: youtube,
+    type: 'video'
+};
 
 // Initialize The Discord Bot
 var bot = new Discord.Client();
@@ -21,7 +29,7 @@ bot.on('ready', () =>
 bot.login(token);
 
 // Bot Listener Command
-bot.on('message', message =>
+bot.on('message', async message =>
 {
     // Split the arguments given by the user into two
     let args = message.content.substring(1).split(' ');
@@ -122,6 +130,46 @@ bot.on('message', message =>
                 }
             break;
 
+            case 'search':
+                if (!cmd2)
+                {
+                    let embed = new Discord.RichEmbed()
+                        .setColor("#73ffdc")
+                        .setDescription("Enter a search query")
+                        .setTitle("Youtube Search")
+                    let embedmsg = await message.channel.send(embed);
+                }
+                //else if (cmd2)
+                //{
+                    let filter = m => m.author.id === message.author.id;
+                    let query = await message.channel.awaitMessages(filter, { max: 1});
+                    let searchResults = await search(query.first().content, options).catch(err => console.log(err));
+                    if (searchResults)
+                    {
+                        let i = 0;
+                        let youtubeResults = searchResults.results;
+                        let searchTitles = youtubeResults.map(result =>
+                        {
+                            i++;
+                            return i + ". " + result.title;
+                        });
+                        console.log(searchTitles);
+                        message.channel.send(
+                        {
+                            embed:
+                            {
+                                title: "Select the song by entering the corresponding number",
+                                description: searchTitles.join("\n")
+                            }
+                        }).catch(err => console.log(err));
+
+                        filter = m => (m.author.id === message.author.id) && m.content >= 1 && m.content <= youtubeResults.length && !isNaN(m.content);
+                        let searchNum = await message.channel.awaitMessages(filter, { maxMatches: 1});
+                        let selected = youtubeResults[searchNum.first().content - 1];
+                    }
+                //}
+            break;
+
             case 'skip':
                 var server = servers[message.guild.id];
                 if (server.dispatcher) server.dispatcher.end();
@@ -146,7 +194,7 @@ bot.on('message', message =>
                 message.member.voiceChannel.join();
             break;
 
-            case 'tictactoe':
+           /*  case 'tictactoe':
                 function createBoard()
                 {
                     message.channel.send(
@@ -166,7 +214,7 @@ bot.on('message', message =>
                 createBoard();
                 message.channel.send('To make a move enter the row number then the column number, Ex. 1 2 will go top middle.');
                 userInput();
-            break;
+            break; */
 
             case 'server':
                 if (cmd2 == 'list')
@@ -190,7 +238,7 @@ bot.on('message', message =>
                 }
             break;
 
-            case 'fight':
+            /* case 'fight':
                 if (!cmd2)
                 {
                     message.channel.send('The correct format is .fight (username) Ex --> .fight SyBot');
@@ -199,7 +247,7 @@ bot.on('message', message =>
                 {
                     console.log('hello');
                 }
-            break;
+            break; */
         }
     }
 });
