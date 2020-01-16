@@ -52,7 +52,8 @@ bot.on('message', async message =>
                 '\n.help --> Shows a list of all commands' +
                 '\n.rng (number) --> Generates a random number between 1 and the specified "number"' +
                 '\n.coin --> Flips a coin' +
-                '\n.play (url or keyword) --> Searches youtube to find the desired song' +
+                '\n.play (url) --> Searches youtube to find the desired song' +
+                '\n.search --> Displays the top 10 results found on youtube' +
                 '\n.skip --> Skips the current song in queue' +
                 '\n.stop --> Stop the bot from playing music' +
                 '\n.join --> Makes the bot join the voice channel it is called from' +
@@ -133,6 +134,7 @@ bot.on('message', async message =>
             case 'search':
                 if (!cmd2)
                 {
+                    // Create a pretty message that tells user to enter a keyword
                     let embed = new Discord.RichEmbed()
                         .setColor("#73ffdc")
                         .setDescription("Enter a search query")
@@ -141,6 +143,8 @@ bot.on('message', async message =>
                 }
                 //else if (cmd2)
                 //{
+
+                    // Find and filter all the results
                     let filter = m => m.author.id === message.author.id;
                     let query = await message.channel.awaitMessages(filter, { max: 1});
                     let searchResults = await search(query.first().content, options).catch(err => console.log(err));
@@ -148,12 +152,16 @@ bot.on('message', async message =>
                     {
                         let i = 0;
                         let youtubeResults = searchResults.results;
+
+                        // Return all the results found
                         let searchTitles = youtubeResults.map(result =>
                         {
                             i++;
                             return i + ". " + result.title;
                         });
                         console.log(searchTitles);
+
+                        // Allow user to enter which search results they would like to access
                         message.channel.send(
                         {
                             embed:
@@ -163,6 +171,7 @@ bot.on('message', async message =>
                             }
                         }).catch(err => console.log(err));
 
+                        // Enforce proper input
                         filter = m => (m.author.id === message.author.id) && m.content >= 1 && m.content <= youtubeResults.length && !isNaN(m.content);
                         let searchNum = await message.channel.awaitMessages(filter, { maxMatches: 1});
                         let selected = youtubeResults[searchNum.first().content - 1];
@@ -251,5 +260,4 @@ bot.on('message', async message =>
         }
     }
 });
-
 return;
