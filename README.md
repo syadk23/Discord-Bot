@@ -7,4 +7,4 @@ In order to add on to the bot or get it working, you must create a config.json w
 
 Type in node bot.js after setting up a bot to run the bot.
 
-All work is done by Syad Khwajazada
+All rights reserved by Syad Khwajazada
